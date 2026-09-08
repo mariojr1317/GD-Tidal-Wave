@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geometry Dash Concept</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: Arial, sans-serif;
+            user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* 1. Menú Principal del juego (GIF de Tenor) */
+        #main-menu {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5;
+        }
+
+        #main-menu-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 6;
+            cursor: pointer;
+        }
+
+        .tenor-gif-embed {
+            width: 100% !important;
+            height: 100% !important;
+            max-height: 100vh;
+        }
+
+        /* 2. Pantalla del Nivel (PNG) */
+        #level-menu {
+            display: none;
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+        }
+
+        #level-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+
+        /* 3. Video del Gameplay */
+        #gd-video {
+            display: none;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            z-index: 3;
+        }
+
+        /* 4. Menú de Pausa (Overlay) */
+        #pause-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        #pause-img {
+            max-width: 80%;
+            max-height: 80%;
+            object-fit: contain;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="game-container">
+        <!-- 1. Menú Principal (GIF Tenor) -->
+        <div id="main-menu">
+            <div id="main-menu-overlay"></div>
+            <div class="tenor-gif-embed" data-postid="15034100129690926628" data-share-method="host" data-aspect-ratio="2.2844" data-width="100%">
+                <a href="https://tenor.com/view/gd-2024-menu-gif-15034100129690926628">Gd 2024 GIF</a>
+            </div>
+        </div>
+
+        <!-- 2. Pantalla del Nivel (PNG) -->
+        <div id="level-menu">
+            <img id="level-img" src="menu-gd.png" alt="Pantalla del Nivel">
+        </div>
+
+        <!-- 3. Video Gameplay -->
+        <video id="gd-video" playsinline>
+            <source src="video-gd.mp4" type="video/mp4">
+            Tu navegador no soporta videos en HTML5.
+        </video>
+
+        <!-- 4. Menú de Pausa (PNG) -->
+        <div id="pause-overlay">
+            <img id="pause-img" src="pausa-gd.png" alt="Menú de Pausa">
+        </div>
+    </div>
+
+    <!-- Script de Tenor -->
+    <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
+
+    <!-- Música del Menú -->
+    <audio id="menu-song" loop src="cancion-menu.mp3"></audio>
+
+    <script>
+        const mainMenu = document.getElementById('main-menu');
+        const mainMenuOverlay = document.getElementById('main-menu-overlay');
+        const levelMenu = document.getElementById('level-menu');
+        const levelImg = document.getElementById('level-img');
+        const video = document.getElementById('gd-video');
+        const pauseOverlay = document.getElementById('pause-overlay');
+        const menuSong = document.getElementById('menu-song');
+
+        const clickSound = new Audio('click.mp3');
+
+        let currentState = 'MAIN_MENU'; // Estados: 'MAIN_MENU', 'LEVEL_MENU', 'PLAYING', 'PAUSED'
+
+        window.addEventListener('DOMContentLoaded', () => {
+            menuSong.play().catch(() => {});
+        });
+
+        function reproducirClic() {
+            clickSound.currentTime = 0;
+            clickSound.play().catch(() => {});
+        }
+
+        // 1. Clic en Menú Principal (GIF) -> Abre Pantalla del Nivel (PNG)
+        mainMenuOverlay.addEventListener('click', () => {
+            if (currentState === 'MAIN_MENU') {
+                reproducirClic();
+                mainMenu.style.display = 'none';
+                levelMenu.style.display = 'block';
+                currentState = 'LEVEL_MENU';
+            }
+        });
+
+        // 2. Clic en Pantalla del Nivel (PNG) -> Inicia Gameplay (Video)
+        levelImg.addEventListener('click', () => {
+            if (currentState === 'LEVEL_MENU') {
+                reproducirClic();
+
+                menuSong.pause();
+                menuSong.currentTime = 0;
+
+                levelMenu.style.display = 'none';
+                video.style.display = 'block';
+                video.play();
+                currentState = 'PLAYING';
+            }
+        });
+
+        // 3. Clic en la Pausa -> Vuelve a la Pantalla del Nivel (PNG)
+        pauseOverlay.addEventListener('click', () => {
+            if (currentState === 'PAUSED') {
+                salirAlMenuNivel();
+            }
+        });
+
+        // 4. Fin del Video -> Vuelve a la Pantalla del Nivel (PNG)
+        video.addEventListener('ended', salirAlMenuNivel);
+
+        function salirAlMenuNivel() {
+            video.pause();
+            video.currentTime = 0;
+            video.style.display = 'none';
+            pauseOverlay.style.display = 'none';
+
+            levelMenu.style.display = 'block';
+            menuSong.play();
+
+            currentState = 'LEVEL_MENU';
+        }
+
+        function salirAlMenuPrincipal() {
+            video.pause();
+            video.currentTime = 0;
+            video.style.display = 'none';
+            pauseOverlay.style.display = 'none';
+            levelMenu.style.display = 'none';
+
+            mainMenu.style.display = 'flex';
+            menuSong.play();
+
+            currentState = 'MAIN_MENU';
+        }
+
+        // 5. Controles Teclado
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (currentState === 'PLAYING') {
+                    video.pause();
+                    pauseOverlay.style.display = 'flex';
+                    currentState = 'PAUSED';
+                } else if (currentState === 'PAUSED') {
+                    video.play();
+                    pauseOverlay.style.display = 'none';
+                    currentState = 'PLAYING';
+                } else if (currentState === 'LEVEL_MENU') {
+                    // ESC en la pantalla del nivel regresa al Menú GIF Principal
+                    reproducirClic();
+                    salirAlMenuPrincipal();
+                }
+            } else if ((e.key === 'Backspace' || e.key === 'Delete') && currentState === 'PAUSED') {
+                salirAlMenuNivel();
+            }
+        });
+    </script>
+</body>
+</html>
